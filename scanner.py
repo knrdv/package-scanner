@@ -10,6 +10,29 @@ import sys
 
 logger = logging.getLogger("pacscan")
 
+class Package:
+	"""
+	Used to represent a package.
+	"""
+	def __init__(self, name=None, version=None, architecture=None):
+		self.name = name
+		self.version = version
+		self.architecture = architecture
+
+class PackageContainer:
+	"""
+	Represents a package container
+	"""
+	def __init__(self):
+		self.packages = []
+
+	def add(self, package : Package):
+		self.packages.append(package)
+
+	def print(self):
+		for p in self.packages:
+			print(p.name + " " + p.version + " " + p.architecture)
+
 class PackageScanner:
 	"""
 	Used for scanning local system for installed packages.
@@ -19,7 +42,7 @@ class PackageScanner:
 		self.installed_packages = PackageContainer()
 		self.package_manager = None
 
-	def getInstalledPackages(self) -> None:
+	def getInstalledPackages(self) -> PackageContainer:
 		"""
 		Get all installed packages on this machine.
 		"""
@@ -35,6 +58,8 @@ class PackageScanner:
 		self.parsePackages(packages)
 
 		self.installed_packages.print()
+
+		return self.installed_packages
 
 	def getPackageManager(self) -> None:
 		"""
@@ -64,26 +89,3 @@ class PackageScanner:
 		else:
 			logger.error("Package manager parser not supported.")
 			sys.exit()
-
-class Package:
-	"""
-	Used to represent a package.
-	"""
-	def __init__(self, name=None, version=None, architecture=None):
-		self.name = name
-		self.version = version
-		self.architecture = architecture
-
-class PackageContainer:
-	"""
-	Represents a package container
-	"""
-	def __init__(self):
-		self.packages = []
-
-	def add(self, package : Package):
-		self.packages.append(package)
-
-	def print(self):
-		for p in self.packages:
-			print(p.name + " " + p.version + " " + p.architecture)
