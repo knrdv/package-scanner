@@ -7,6 +7,8 @@ import subprocess
 import logging
 import config
 import sys
+import os
+import json
 
 logger = logging.getLogger("pacscan")
 
@@ -19,6 +21,9 @@ class Package:
 		self.version = version
 		self.architecture = architecture
 
+	def __str__(self):
+		return self.name + " " + self.version + " " + self.architecture
+
 class PackageContainer:
 	"""
 	Represents a package container
@@ -26,16 +31,28 @@ class PackageContainer:
 	def __init__(self):
 		self.packages = []
 
+	def __str__(self):
+		retstr = ""
+		for p in self.packages:
+			retstr += str(p) + "\n"
+		return retstr
+
 	def add(self, package : Package) -> None:
 		"""
 		Add new package.
 		"""
 		self.packages.append(package)
 
-	# TODO: REFACTOR
-	def print(self):
+	def toJSON(self) -> str:
+		"""
+		Format to JSON.
+		"""
+		new_packages = []
 		for p in self.packages:
-			print(p.name + " " + p.version + " " + p.architecture)
+			new_packages.append(p.__dict__)
+		json_out = json.dumps(new_packages, indent=4)
+		return json_out
+		
 
 class PackageScanner:
 	"""
@@ -60,8 +77,6 @@ class PackageScanner:
 		# Parse packages to self.installed_packages
 		self.parsePackages(packages)
 
-		# TODO: REFACTOR
-		self.installed_packages.print()
 		return self.installed_packages
 
 	def getPackageManager(self) -> None:
@@ -79,7 +94,16 @@ class PackageScanner:
 		"""
 		Save results of last run to a file.
 		"""
-		pass
+		scanner_dir = os.path.dirname(os.path.realpath(__file__))
+		results_dir = os.path.join(scanner_dir, config.PKG_SCAN_DIR)
+
+		if not os.path.isdir(results_dir):
+			os.mkdir(results_dir)
+
+		json_results = self.installed_packages.toJSON()
+
+		with open(os.path.join(results_dir,config.PKG_SCAN_FILE), "w") as f:
+			f.write(json_results)
 
 	def parsePackages(self, packages_list) -> None:
 		"""

@@ -9,6 +9,8 @@ def main():
 	"""
 	ps = PackageScanner()
 	packages = ps.getInstalledPackages()
+	print(packages)
+	ps.saveScanResults()
 
 if __name__ == "__main__":
 	main()
