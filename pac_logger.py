@@ -4,8 +4,7 @@ Utility module for setting up application logging.
 
 import logging
 import sys
-
-LOG_FILE = "pacscan.log"
+import config
 
 # Set log format
 log_formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s:%(message)s")
@@ -15,7 +14,7 @@ console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setFormatter(log_formatter)
 
 # Set file handler
-file_handler = logging.FileHandler(LOG_FILE)
+file_handler = logging.FileHandler(config.LOG_FILE)
 file_handler.setFormatter(log_formatter)
 
 logger = logging.getLogger("pacscan")
