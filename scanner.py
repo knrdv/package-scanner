@@ -12,7 +12,7 @@ logger = logging.getLogger("pacscan")
 
 class Package:
 	"""
-	Used to represent a package.
+	Represents a package.
 	"""
 	def __init__(self, name=None, version=None, architecture=None):
 		self.name = name
@@ -26,9 +26,13 @@ class PackageContainer:
 	def __init__(self):
 		self.packages = []
 
-	def add(self, package : Package):
+	def add(self, package : Package) -> None:
+		"""
+		Add new package.
+		"""
 		self.packages.append(package)
 
+	# TODO: REFACTOR
 	def print(self):
 		for p in self.packages:
 			print(p.name + " " + p.version + " " + p.architecture)
@@ -37,7 +41,6 @@ class PackageScanner:
 	"""
 	Used for scanning local system for installed packages.
 	"""
-
 	def __init__(self):
 		self.installed_packages = PackageContainer()
 		self.package_manager = None
@@ -57,8 +60,8 @@ class PackageScanner:
 		# Parse packages to self.installed_packages
 		self.parsePackages(packages)
 
+		# TODO: REFACTOR
 		self.installed_packages.print()
-
 		return self.installed_packages
 
 	def getPackageManager(self) -> None:
@@ -79,6 +82,9 @@ class PackageScanner:
 		pass
 
 	def parsePackages(self, packages_list) -> None:
+		"""
+		Parse package to extract relevant inormation.
+		"""
 		if self.package_manager == "apt":
 			for package in packages_list:
 				package = package.strip().split(" ")

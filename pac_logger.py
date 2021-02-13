@@ -1,7 +1,6 @@
 """
 Utility module for setting up application logging.
 """
-
 import logging
 import sys
 import config
