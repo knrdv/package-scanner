@@ -24,6 +24,7 @@ class Package:
 	def __str__(self):
 		return self.name + " " + self.version + " " + self.architecture
 
+
 class PackageContainer:
 	"""
 	Represents a package container
@@ -52,7 +53,7 @@ class PackageContainer:
 			new_packages.append(p.__dict__)
 		json_out = json.dumps(new_packages, indent=4)
 		return json_out
-		
+
 
 class PackageScanner:
 	"""
