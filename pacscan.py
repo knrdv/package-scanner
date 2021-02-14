@@ -2,6 +2,8 @@
 
 from pac_logger import logger
 from scanner import PackageScanner
+from analyzer import Analyzer
+import config
 
 def main():
 	"""
@@ -9,8 +11,14 @@ def main():
 	"""
 	ps = PackageScanner()
 	packages = ps.getInstalledPackages()
-	print(packages)
+	#print(packages)
 	ps.saveScanResults()
+
+	an = Analyzer()
+	#an.loadFromFile(config.PKG_SCAN_DIR + "/" + config.PKG_SCAN_FILE)
+	an.loadFromPackageCont(packages)
+	an.analyze()
+	an.saveAnalysisResults()
 
 if __name__ == "__main__":
 	main()
