@@ -63,7 +63,7 @@ class Analyzer:
 			cpeid = json_response["result"]["cpes"][0]["cpe23Uri"]
 			cves = json_response["result"]["cpes"][0]["vulnerabilities"]
 		except IndexError as e:
-			print(e)
+			logger.info("No vulnerabilities found for: " + pkg.name)
 			#print(json.dumps(json_response, indent=4, sort_keys=True))
 			return [None, None]
 
@@ -112,8 +112,8 @@ class Analyzer:
 		logger.info("Analyzing " + str(container_size) + " packages")
 
 		for pkg in self.packages:
-			if ctr == 10:
-				break
+			#if ctr == 10:
+			#	break
 			print("Checking package " + str(ctr) + "/" + str(container_size))
 			cpeid, cves = self.nvdGET(pkg)
 			time.sleep(0.8)
