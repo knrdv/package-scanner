@@ -130,3 +130,5 @@ dmypy.json
 
 # Additional
 scan_results/
+analysis_results/
+cpe_db.*

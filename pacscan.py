@@ -15,8 +15,8 @@ def main():
 	ps.saveScanResults()
 
 	an = Analyzer()
-	#an.loadFromFile(config.PKG_SCAN_DIR + "/" + config.PKG_SCAN_FILE)
-	an.loadFromPackageCont(packages)
+	an.loadFromFile(config.PKG_SCAN_DIR + "/" + config.PKG_SCAN_FILE)
+	#an.loadFromPackageCont(packages)
 	an.analyze()
 	an.saveAnalysisResults()
 
