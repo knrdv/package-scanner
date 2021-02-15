@@ -17,7 +17,7 @@ class Package:
 	"""
 	Represents a package.
 	"""
-	def __init__(self, name="", version="", architecture="", vendor="", description="", cves=None, cpeid="", pdict=None):
+	def __init__(self, name="", version="", architecture="", vendor="", description="", cves:dict=None, cpeid="", pdict:dict=None):
 		self.name = name
 		self.version = version
 		self.architecture = architecture
@@ -36,15 +36,15 @@ class Package:
 			if "cpeid" in pdict: self.cpeid = pdict["cpeid"]
 
 	def __str__(self):
-		return "\nName:" + self.name + "\n" \
-				+ "Version:" + self.version + "\n" \
-				+ "Arch:" + self.architecture + "\n" \
-				+ "Vendor:" + self.vendor + "\n" \
-				+ "Description:" + self.description + "\n" \
-				+ "CVEs:" + str(self.cves) + "\n" \
-				+ "cpeid:" + self.cpeid
+		return f"\nName:{self.name}\n" \
+				f"Version:{self.version}\n" \
+				f"Arch:{self.architecture}\n" \
+				f"Vendor:{self.vendor}\n" \
+				f"Description:{self.description}\n" \
+				f"CVEs:{str(self.cves)}\n" \
+				f"cpeid:{self.cpeid}"
 
-	def updatePackage(self, name=None, version=None, architecture=None, vendor=None, description=None, cves=None, cpeid=None):
+	def updatePackage(self, name=None, version=None, architecture=None, vendor=None, description=None, cves:dict=None, cpeid:dict=None):
 		if name: self.name = name
 		if version: self.version = version
 		if architecture: self.architecture = architecture
@@ -130,13 +130,12 @@ class PackageScanner:
 			packages = packages.split("\n")[1:-1]
 		else:
 			logger.error("Package manager not supported for extracting packages.")
-			sys.exit()
+			raise ValueError("Package manager unsupported")
 
 		# Parse packages to self.installed_packages
 		self.parsePackages(packages)
 
 		logger.info("Installed packages collected")
-
 		return self.installed_packages
 
 	def getPackageManager(self) -> None:
@@ -148,7 +147,7 @@ class PackageScanner:
 				self.package_manager = pkgmgr
 				return
 		logger.error("Supported package manager not found, aborting.")
-		sys.exit()
+		raise ValueError("Package manager unsupported")
 
 	def saveScanResults(self) -> None:
 		"""
@@ -166,7 +165,7 @@ class PackageScanner:
 		with open(results_file_path, "w") as f:
 			f.write(json_results)
 
-		logger.info("Scan results saved to:" + results_file_path)
+		logger.info(f"Scan results saved to:{results_file_path}")
 
 	def parsePackages(self, packages_list) -> None:
 		"""
@@ -181,5 +180,5 @@ class PackageScanner:
 				self.installed_packages.add(Package(name=name, version=version, architecture=architecture))
 		else:
 			logger.error("Package manager parser not supported.")
-			sys.exit()
+			raise ValueError("Package manager unsupported")
 		logger.info("Packages parsed successfully")
