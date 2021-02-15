@@ -5,6 +5,9 @@ from scanner import PackageScanner
 from analyzer import Analyzer
 import config
 
+logging.basicConfig(level=logging.DEBUG, format=config.LOG_FORMAT, filename=config.LOG_FILE)
+logger = logging.getLogger(__name__)
+
 def main():
 	"""
 	Main function of packet scanner when running from cmdline.

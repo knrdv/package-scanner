@@ -11,6 +11,7 @@ import config
 import os
 import time
 
+logging.basicConfig(level=logging.DEBUG, format=config.LOG_FORMAT, filename=config.LOG_FILE)
 logger = logging.getLogger(__name__)
 
 class Analyzer:
@@ -47,7 +48,6 @@ class Analyzer:
 		Get packages CVE info results from NVD API or downloaded database
 		"""
 		major_version = None
-		print(pkg.version)
 		if "+" in pkg.version:
 			major_version = pkg.version.split("+")[0]
 		elif "~" in pkg.version:
@@ -58,7 +58,6 @@ class Analyzer:
 		if not major_version: major_version = pkg.version
 		cpematch = "cpeMatchString=cpe:2.3:*:*" + ":" + pkg.name + ":" + major_version
 		r_str = "https://services.nvd.nist.gov/rest/json/cpes/1.0?" + cpematch + "&addOns=cves"
-		print("Request: " + r_str)
 		r = requests.get(r_str)
 		json_response = json.loads(r.text)
 		r.close()
@@ -85,7 +84,6 @@ class Analyzer:
 			cves = json_response["result"]["cpes"][0]["vulnerabilities"]
 		except IndexError as e:
 			logger.info("No vulnerabilities found for: " + pkg.name)
-			#print(json.dumps(json_response, indent=4, sort_keys=True))
 			return [cpeid, None]
 
 		return [cpeid, cves]
@@ -94,7 +92,6 @@ class Analyzer:
 		"""
 		Populate CVE severity info for every cve in package.
 		"""
-		print("IN GETCVE")
 		base_request = "https://services.nvd.nist.gov/rest/json/cve/1.0/"
 		cve_dict = {}
 		for cve in cves:
@@ -154,7 +151,6 @@ class Analyzer:
 		for pkg in self.packages:
 			if ctr == 3:
 				break
-			print("Checking package " + str(ctr) + "/" + str(container_size))
 			cpeid, cves = self.nvdGETCPE(pkg)
 			time.sleep(0.4)
 			if cpeid:
