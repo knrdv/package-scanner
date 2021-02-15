@@ -17,7 +17,7 @@ class Package:
 	"""
 	Represents a package.
 	"""
-	def __init__(self, name="", version="", architecture="", vendor="", description="", cves={}, cpeid="", pdict={}):
+	def __init__(self, name="", version="", architecture="", vendor="", description="", cves=None, cpeid="", pdict=None):
 		self.name = name
 		self.version = version
 		self.architecture = architecture
@@ -44,7 +44,7 @@ class Package:
 				+ "CVEs:" + str(self.cves) + "\n" \
 				+ "cpeid:" + self.cpeid
 
-	def updatePackage(self, name=None, version=None, architecture=None, vendor=None, description=None, cves={}, cpeid=None):
+	def updatePackage(self, name=None, version=None, architecture=None, vendor=None, description=None, cves=None, cpeid=None):
 		if name: self.name = name
 		if version: self.version = version
 		if architecture: self.architecture = architecture

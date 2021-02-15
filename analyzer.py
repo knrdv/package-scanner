@@ -43,7 +43,7 @@ class Analyzer:
 		self.packages = pkg_cont
 		logger.info("Loaded packages from package container.")
 
-	def nvdGETCPE(self, pkg, fromdb=False) -> list:
+	def nvdGETCPE(self, pkg, fromdb=False) -> tuple:
 		"""
 		Get packages CVE info results from NVD API or downloaded database
 		"""
@@ -65,11 +65,11 @@ class Analyzer:
 		if not "result" in json_response:
 			logger.warning("MALFORMED: No result field found for: " + pkg.name)
 			self.malformed.add(pkg)
-			return [None, None]
+			return (None, None)
 
 		if json_response["totalResults"] == 0:
 			logger.info("No vulns found:" + pkg.name + " " + pkg.version)
-			return [None, None]
+			return (None, None)
 
 		try:
 			if json_response["result"]["cpeCount"] > 1:
@@ -77,18 +77,18 @@ class Analyzer:
 		except KeyError as e:
 			self.malformed.add(pkg)
 			logger.warning("MALFORMED: Package version " + pkg.version)
-			return [None, None]
+			return (None, None)
 
 		try:
 			cpeid = json_response["result"]["cpes"][0]["cpe23Uri"]
 			cves = json_response["result"]["cpes"][0]["vulnerabilities"]
 		except IndexError as e:
 			logger.info("No vulnerabilities found for: " + pkg.name)
-			return [cpeid, None]
+			return (cpeid, None)
 
-		return [cpeid, cves]
+		return (cpeid, cves)
 
-	def nvdGETCVE(self, cves : list) -> None:
+	def nvdGetCVE(self, cves : list) -> dict:
 		"""
 		Populate CVE severity info for every cve in package.
 		"""
@@ -155,7 +155,7 @@ class Analyzer:
 			time.sleep(0.4)
 			if cpeid:
 				if cves:
-					cve_dict = self.nvdGETCVE(cves)
+					cve_dict = self.nvdGetCVE(cves)
 					pkg.updatePackage(cpeid=cpeid, cves=cve_dict)
 				else:
 					pkg.updatePackage(cpeid=cpeid)
