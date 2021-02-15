@@ -10,7 +10,8 @@ import sys
 import os
 import json
 
-logger = logging.getLogger("pacscan")
+logging.basicConfig(level=logging.DEBUG, format=config.LOG_FORMAT, filename=config.LOG_FILE)
+logger = logging.getLogger(__name__)
 
 class Package:
 	"""
@@ -134,6 +135,8 @@ class PackageScanner:
 		# Parse packages to self.installed_packages
 		self.parsePackages(packages)
 
+		logger.info("Installed packages collected")
+
 		return self.installed_packages
 
 	def getPackageManager(self) -> None:
@@ -193,3 +196,5 @@ class PackageScanner:
 		else:
 			logger.error("Package manager parser not supported.")
 			sys.exit()
+
+		logger.info("Packages parsed successfully")

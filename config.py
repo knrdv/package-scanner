@@ -4,6 +4,7 @@ This is a configuration file.
 import os
 
 LOG_FILE = "pacscan.log"
+LOG_FORMAT = "%(asctime)s:%(name)s:%(levelname)s:%(message)s"
 
 SUPPORTED_PACKAGE_MGRS = ["apt"]
 

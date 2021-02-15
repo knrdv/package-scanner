@@ -14,11 +14,11 @@ def main():
 	#print(packages)
 	ps.saveScanResults()
 
-	an = Analyzer()
-	an.loadFromFile(config.PKG_SCAN_DIR + "/" + config.PKG_SCAN_FILE)
+	#an = Analyzer()
+	#an.loadFromFile(config.PKG_SCAN_DIR + "/" + config.PKG_SCAN_FILE)
 	#an.loadFromPackageCont(packages)
-	an.analyze()
-	an.saveAnalysisResults()
+	#an.analyze()
+	#an.saveAnalysisResults()
 
 if __name__ == "__main__":
 	main()

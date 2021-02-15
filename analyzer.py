@@ -11,7 +11,7 @@ import config
 import os
 import time
 
-logger = logging.getLogger("pacscan")
+logger = logging.getLogger(__name__)
 
 class Analyzer:
 
