@@ -150,20 +150,6 @@ class PackageScanner:
 		logger.error("Supported package manager not found, aborting.")
 		sys.exit()
 
-	def getPackageDescription(self) -> None:
-		"""
-		TODO: Get package description.
-		NOTE: NOT TESTED
-		"""
-		if self.package_manager == "apt":
-			for p in self.installed_packages:
-				show = subprocess.Popen(("apt", "show", p.name), stdout=subprocess.PIPE)
-				out = subprocess.check_output(("grep", "Description"), stdin=show.stdout, encoding='UTF-8')
-				desc = out.strip().lstrip("Description: ")
-				p.description = desc
-		else:
-			logger.warning("Could not retrieve package description because pkg mgr is not supported")
-
 	def saveScanResults(self) -> None:
 		"""
 		Save results of last run to a file.
@@ -196,5 +182,4 @@ class PackageScanner:
 		else:
 			logger.error("Package manager parser not supported.")
 			sys.exit()
-
 		logger.info("Packages parsed successfully")
