@@ -6,8 +6,7 @@ This module implements local package scanner.
 import subprocess
 import logging
 import config
-import sys
-import os
+from pathlib import Path
 import json
 
 logging.basicConfig(level=logging.DEBUG, format=config.LOG_FORMAT, filename=config.LOG_FILE)
@@ -149,23 +148,23 @@ class PackageScanner:
 		logger.error("Supported package manager not found, aborting.")
 		raise ValueError("Package manager unsupported")
 
-	def saveScanResults(self) -> None:
+	def saveScanResults(self, out_path=None) -> None:
 		"""
 		Save results of last run to a file.
 		"""
-		results_dir = config.PKG_SCAN_DIR
-
-		if not os.path.isdir(results_dir):
-			os.mkdir(results_dir)
+		scan_dir = Path(config.PKG_SCAN_DIR)
+		if not scan_dir.is_dir():
+			scan_dir.mkdir()
+			logger.info(f"Created scan results directory at {config.PKG_SCAN_DIR}")
 
 		json_results = self.installed_packages.toJSON()
 
-		results_file_path = os.path.join(results_dir,config.PKG_SCAN_FILE)
-		if os.path.exists(results_file_path): open(results_file_path, "w").close()
-		with open(results_file_path, "w") as f:
+		scan_file = Path(config.PKG_SCAN_FILE)
+		results_path = scan_dir / scan_file
+		with open(results_path, "w+") as f:
 			f.write(json_results)
 
-		logger.info(f"Scan results saved to:{results_file_path}")
+		logger.info(f"Scan results saved to:{results_path}")
 
 	def parsePackages(self, packages_list) -> None:
 		"""

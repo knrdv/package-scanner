@@ -3,12 +3,11 @@ This module is used for analyzing scanned packages.
 """
 from scanner import PackageContainer
 from scanner import Package
+from pathlib import Path
 import logging
-import sys
 import requests
 import json
 import config
-import os
 import time
 
 logging.basicConfig(level=logging.DEBUG, format=config.LOG_FORMAT, filename=config.LOG_FILE)
@@ -18,6 +17,7 @@ class Analyzer:
 
 	def __init__(self):
 		self.packages = PackageContainer()
+		self.processed = PackageContainer()
 		self.malformed = PackageContainer()
 		self.malformed_ctr = 0
 		self.processed_ctr = 0
@@ -27,13 +27,14 @@ class Analyzer:
 		"""
 		Load packages from JSON file.
 		"""
-		if not os.path.exists(file):
-			logger.error(f"File {file} does not exist")
-			raise ValueError(f"File {file} does not exist")
-		with open(file) as json_file:
+		scan_results = Path(file)
+		if not scan_results.is_file():
+			logger.error(f"File {scan_results} does not exist")
+			raise ValueError(f"File {scan_results} does not exist")
+		with open(scan_results) as json_file:
 			data = json.load(json_file)
 			self.packages = PackageContainer(data)
-		logger.info("Loaded packages from JSON file")
+		logger.info(f"Loaded packages from {scan_results}")
 
 	def loadFromPackageCont(self, pkg_cont):
 		"""
@@ -42,24 +43,49 @@ class Analyzer:
 		self.packages = pkg_cont
 		logger.info("Loaded packages from package container.")
 
-	def nvdGETCPE(self, pkg, fromdb=False) -> tuple:
+	def nvdGetCPE(self, pkg, fromdb=False) -> tuple:
 		"""
 		Get packages CVE info results from NVD API or downloaded database
 		"""
 		major_version = None
+		minor_version = None
 		if "+" in pkg.version:
-			major_version = pkg.version.split("+")[0]
+			sres = pkg.version.split("+")
+			major_version = sres[0]
+			minor_version = sres[1]
 		elif "~" in pkg.version:
-			major_version = pkg.version.split("~")[0]
+			sres = pkg.version.split("~")
+			major_version = sres[0]
+			minor_version = sres[1]
 		elif "-" in pkg.version:
-			major_version = pkg.version.split("-")[0]
+			sres = pkg.version.split("-")
+			major_version = sres[0]
+			minor_version = sres[1]
 
 		if not major_version: major_version = pkg.version
-		cpematch = f"cpeMatchString=cpe:2.3:*:*:{pkg.name}:{major_version}"
+
+		# First try requesting bot major and minor versions
+		cpematch = f"cpeMatchString=cpe:2.3:*:*:{pkg.name}:{major_version}:{minor_version}"
 		r_str = f"https://services.nvd.nist.gov/rest/json/cpes/1.0?{cpematch}&addOns=cves"
 		r = requests.get(r_str)
 		json_response = json.loads(r.text)
 		r.close()
+
+		print(r_str)
+		if json_response["totalResults"] == 0:
+			old_response = json_response
+			logger.info(f"No vulns found after major+minor check:{pkg.name} {pkg.version}")
+			logger.info(f"Checking only with major version")
+			cpematch = f"cpeMatchString=cpe:2.3:*:*:{pkg.name}:{major_version}"
+			r_str = f"https://services.nvd.nist.gov/rest/json/cpes/1.0?{cpematch}&addOns=cves"
+			r = requests.get(r_str)
+			json_response = json.loads(r.text)
+			r.close()
+
+			# If new response has a minor version detected and old doesnt, keep the old result
+			if json_response["totalResults"] > 0:
+				if json_response["result"]["cpes"][0]["cpe23Uri"].split(":")[6] != "":
+					json_response = old_response
 
 		if not "result" in json_response:
 			logger.warning(f"MALFORMED: No result field found for: {pkg.name}")
@@ -115,25 +141,25 @@ class Analyzer:
 		"""
 		Save results of last analysis run to a file.
 		"""
-		if not os.path.isdir(config.PKG_ANALYSIS_DIR):
-			os.mkdir(config.PKG_ANALYSIS_DIR)
+		if not config.PKG_ANALYSIS_DIR.is_dir():
+			config.PKG_ANALYSIS_DIR.mkdir()
 
-		results_file_path = os.path.join(config.PKG_ANALYSIS_DIR, config.PKG_ANALYSIS_FILE)
-		self.packages.toFile(results_file_path)
+		results_file_path = config.PKG_ANALYSIS_DIR / config.PKG_ANALYSIS_FILE
+		self.processed.toFile(results_file_path)
 
-		logger.info("Analysis results saved to:" + results_file_path)
+		logger.info(f"Analysis results saved to:{results_file_path}")
 
 	def saveAnalysisMalformed(self) -> None:
 		"""
 		Save malformed packages of last analysis run to a file.
 		"""
-		if not os.path.isdir(config.PKG_ANALYSIS_DIR):
-			os.mkdir(config.PKG_ANALYSIS_DIR)
+		if not config.PKG_ANALYSIS_DIR.is_dir():
+			config.PKG_ANALYSIS_DIR.mkdir()
 
-		results_file_path = os.path.join(config.PKG_ANALYSIS_DIR, config.PKG_ANALYSIS_MALFORMED)
+		results_file_path = config.PKG_ANALYSIS_DIR / config.PKG_ANALYSIS_MALFORMED
 		self.malformed.toFile(results_file_path)
 
-		logger.info("Malformed results saved to:" + results_file_path)
+		logger.info(f"Malformed results saved to: {results_file_path}")
 
 	def analyze(self):
 		"""
@@ -148,16 +174,18 @@ class Analyzer:
 		logger.info(f"Analyzing {str(container_size)} packages")
 
 		for pkg in self.packages:
-			if ctr == 3:
+			if ctr == 2:
 				break
-			cpeid, cves = self.nvdGETCPE(pkg)
+			cpeid, cves = self.nvdGetCPE(pkg)
 			time.sleep(0.4)
 			if cpeid:
 				if cves:
 					cve_dict = self.nvdGetCVE(cves)
 					pkg.updatePackage(cpeid=cpeid, cves=cve_dict)
+					self.processed.add(pkg)
 				else:
 					pkg.updatePackage(cpeid=cpeid)
+					self.processed.add(pkg)
 				logger.info(f"Updated package: {pkg.name}")
 			ctr += 1
 
